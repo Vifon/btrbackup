@@ -1,0 +1,54 @@
+#!/usr/bin/make -f
+
+DISK_UUID = baf7318e-8eba-4fef-b9a9-dbb5121a0799
+SNAPSHOT_DIR = /mnt/btrfs/snapshot.d
+BACKUP_DIR := /media/hd2/backup/$(shell hostname)
+
+MOUNT_USER = vifon
+MOUNT_SCRIPT = /home/vifon/.bin/luksury
+UMOUNT_SCRIPT = $(MOUNT_SCRIPT) -d
+
+# END OF THE CONFIGURATION SECTION
+
+ROOT_PREFIX = @-
+HOME_PREFIX = @home-
+
+OLD_ROOT_SNAPSHOT = $(wildcard $(SNAPSHOT_DIR)/$(ROOT_PREFIX)*)
+OLD_HOME_SNAPSHOT = $(wildcard $(SNAPSHOT_DIR)/$(HOME_PREFIX)*)
+
+DATE := $(shell date +%s_%y.%m.%d)
+NEW_ROOT_SNAPSHOT_NAME = $(ROOT_PREFIX)$(DATE)
+NEW_HOME_SNAPSHOT_NAME = $(HOME_PREFIX)$(DATE)
+
+NEW_ROOT_SNAPSHOT = $(SNAPSHOT_DIR)/$(NEW_ROOT_SNAPSHOT_NAME)
+NEW_HOME_SNAPSHOT = $(SNAPSHOT_DIR)/$(NEW_HOME_SNAPSHOT_NAME)
+
+NEW_ROOT_BACKUP = $(BACKUP_DIR)/$(NEW_ROOT_SNAPSHOT_NAME)
+NEW_HOME_BACKUP = $(BACKUP_DIR)/$(NEW_HOME_SNAPSHOT_NAME)
+
+
+.PHONY: all
+all: $(NEW_ROOT_BACKUP) $(NEW_HOME_BACKUP)
+	btrfs subvolume delete $(OLD_ROOT_SNAPSHOT) $(OLD_HOME_SNAPSHOT)
+	sudo -u $(MOUNT_USER) $(UMOUNT_SCRIPT)
+
+define do-backup =
+btrfs send -p $^ | btrfs receive $(BACKUP_DIR)
+endef
+$(NEW_ROOT_BACKUP): $(OLD_ROOT_SNAPSHOT) $(NEW_ROOT_SNAPSHOT) | $(BACKUP_DIR)
+	$(do-backup)
+$(NEW_HOME_BACKUP): $(OLD_HOME_SNAPSHOT) $(NEW_HOME_SNAPSHOT) | $(BACKUP_DIR)
+	$(do-backup)
+
+define do-snapshot =
+btrfs subvolume snapshot -r $< $@
+endef
+$(NEW_ROOT_SNAPSHOT): /
+	$(do-snapshot)
+	sync
+$(NEW_HOME_SNAPSHOT): /home
+	$(do-snapshot)
+	sync
+
+$(BACKUP_DIR)/placeholder: | /dev/disk/by-uuid/$(DISK_UUID)
+	sudo -u $(MOUNT_USER) $(MOUNT_SCRIPT)
