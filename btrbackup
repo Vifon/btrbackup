@@ -16,7 +16,7 @@ HOME_PREFIX = @home-
 OLD_ROOT_SNAPSHOT = $(wildcard $(SNAPSHOT_DIR)/$(ROOT_PREFIX)*)
 OLD_HOME_SNAPSHOT = $(wildcard $(SNAPSHOT_DIR)/$(HOME_PREFIX)*)
 
-DATE := $(shell date +%s_%y.%m.%d)
+DATE := $(shell date +%y.%m.%d_%s)
 NEW_ROOT_SNAPSHOT_NAME = $(ROOT_PREFIX)$(DATE)
 NEW_HOME_SNAPSHOT_NAME = $(HOME_PREFIX)$(DATE)
 
@@ -50,5 +50,5 @@ $(NEW_HOME_SNAPSHOT): /home
 	$(do-snapshot)
 	sync
 
-$(BACKUP_DIR)/placeholder: | /dev/disk/by-uuid/$(DISK_UUID)
+$(BACKUP_DIR): | /dev/disk/by-uuid/$(DISK_UUID)
 	sudo -u $(MOUNT_USER) $(MOUNT_SCRIPT)
