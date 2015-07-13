@@ -43,10 +43,10 @@ $(NEW_HOME_BACKUP): $(OLD_HOME_SNAPSHOT) $(NEW_HOME_SNAPSHOT) | $(BACKUP_DIR)
 define do-snapshot =
 btrfs subvolume snapshot -r $< $@
 endef
-$(NEW_ROOT_SNAPSHOT): /
+$(NEW_ROOT_SNAPSHOT): / | $(BACKUP_DIR)
 	$(do-snapshot)
 	sync
-$(NEW_HOME_SNAPSHOT): /home
+$(NEW_HOME_SNAPSHOT): /home | $(BACKUP_DIR)
 	$(do-snapshot)
 	sync
 
