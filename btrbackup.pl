@@ -26,7 +26,7 @@ chomp $timestamp;
 
 for my $disk (@{$config->{disks}}) {
     say "Mounting $disk->{uuid}...";
-    run("sudo", "-u", $disk->{mount_user}, split(' ', $disk->{mount_script}));
+    run("sudo -u $disk->{mount_user} $disk->{mount_script}");
 
     my $backup_dir = catfile("$disk->{backup_dir}", hostname);
 
@@ -50,5 +50,5 @@ for my $disk (@{$config->{disks}}) {
     }
 
     say "Unmounting $disk->{uuid}...";
-    run("sudo", "-u", $disk->{mount_user}, split(' ', $disk->{umount_script}));
+    run("sudo -u $disk->{mount_user} $disk->{umount_script}");
 }
