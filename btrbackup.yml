@@ -1,0 +1,15 @@
+disks:
+  - uuid: baf7318e-8eba-4fef-b9a9-dbb5121a0799
+
+    snapshot_dir: /mnt/btrfs/snapshot.d
+    backup_dir: /media/hd2/backup/ # .../$HOSTNAME
+
+    mount_user: vifon
+    mount_script:  /home/vifon/.bin/luksury -k
+    umount_script: /home/vifon/.bin/luksury -dk
+
+    subvols:
+      - prefix: "@-"
+        mount: "/"
+      - prefix: "@home-"
+        mount: "/home"
